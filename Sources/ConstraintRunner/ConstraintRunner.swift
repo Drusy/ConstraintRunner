@@ -18,7 +18,7 @@ protocol ReachabilityProvider {
 
 extension Reachability: ReachabilityProvider {}
 
-class ConstraintRunner {
+public class ConstraintRunner {
     
     private class ContraintRunnerDateProvider: DateProvider {
         func now() -> Date {
@@ -26,9 +26,9 @@ class ConstraintRunner {
         }
     }
     
-    typealias CompletionHandler = (Bool) -> Void
+    public typealias CompletionHandler = (Bool) -> Void
 
-    enum ConnectivityType {
+    public enum ConnectivityType {
         /// Job will run regardless the connectivity of the platform
         case any
         /// Requires a connectivity, wifi or cellular
@@ -41,7 +41,7 @@ class ConstraintRunner {
         case wifi
     }
     
-    enum Period {
+    public enum Period {
         case any
         // Once every 12h
         case twiceADay
@@ -77,7 +77,7 @@ class ConstraintRunner {
     private var connectivity: ConnectivityType = .any
     private var maxRetryInterval: TimeInterval = 0
 
-    init(identifier: String) {
+    public init(identifier: String) {
         let constraintRunnerIdentifier = "\(ConstraintRunner.userDefaultsPrefix).\(identifier)"
         
         self.identifier = constraintRunnerIdentifier
@@ -94,7 +94,7 @@ class ConstraintRunner {
     /// - Parameter handler: The handler to execute if needed
     /// - Returns: `true` if the handler have been called, `false` otherwise
     @discardableResult
-    func runIfNeeded(force: Bool = false, asyncHandler: (@escaping CompletionHandler) -> Void) -> Bool {
+    public func runIfNeeded(force: Bool = false, asyncHandler: (@escaping CompletionHandler) -> Void) -> Bool {
         guard force == true || shouldRun() else { return false }
         
         asyncHandler { [weak self] succeeded in
@@ -118,7 +118,7 @@ class ConstraintRunner {
     /// - Parameter handler: The handler to execute if needed
     /// - Returns: `true` if the handler have been called, `false` otherwise
     @discardableResult
-    func runIfNeeded(syncHandler: () -> Bool) -> Bool {
+    public func runIfNeeded(syncHandler: () -> Bool) -> Bool {
         guard shouldRun() else { return false }
 
         if syncHandler() {
@@ -133,7 +133,7 @@ class ConstraintRunner {
     /// Constraint the task for a maximum period of time
     ///
     /// - Parameter period: The period if time, defined by `Period`
-    func period(_ period: Period) -> ConstraintRunner {
+    public func period(_ period: Period) -> ConstraintRunner {
         self.period = period
         return self
     }
@@ -141,7 +141,7 @@ class ConstraintRunner {
     /// Constraint the task for a minimum internet connection
     ///
     /// - Parameter network: The minimum required internet connectivity
-    func connectivity(atLeast connectivity: ConnectivityType) -> ConstraintRunner {
+    public func connectivity(atLeast connectivity: ConnectivityType) -> ConstraintRunner {
         self.connectivity = connectivity
         return self
     }
@@ -158,7 +158,7 @@ class ConstraintRunner {
     /// If all the constraints are satisfied, the task should run
     ///
     /// - Returns: `true` if the task should run, `false` otherwise
-    func shouldRun() -> Bool {
+    public func shouldRun() -> Bool {
         guard isPeriodSatisfied() else { return false }
         guard isMaxRetryIntervalSatisfied() else { return false }
         guard isConnectivitySatisfied() else { return false }
@@ -169,19 +169,19 @@ class ConstraintRunner {
     /// Calculate the duration before the next possible execution
     ///
     /// - Returns: The duration before the next possible execution of the constrained task
-    func timeIntervalBeforeNextExecution() -> TimeInterval {
+    public func timeIntervalBeforeNextExecution() -> TimeInterval {
         return timeIntervalBeforePeriodSatisfied() ?? timeIntervalBeforeMaxRetryIntervalSatisfied() ?? 0
     }
     
     /// Defined if the last execution of the process failed
     ///
     /// - Returns: `true` if the last execution failed, `false` otherwise
-    func didLastExecutionFail() -> Bool {
+    public func didLastExecutionFail() -> Bool {
         return UserDefaults.standard.object(forKey: retryIdentifier) != nil
     }
     
     /// Remove all the persisted properties
-    static func removeAllPersistedProperties() {
+    static public func removeAllPersistedProperties() {
         UserDefaults.standard
             .dictionaryRepresentation()
             .filter { $0.key.starts(with: ConstraintRunner.userDefaultsPrefix) }
@@ -192,13 +192,13 @@ class ConstraintRunner {
     
     // MARK: - Core
     
-    func onRunSucceeded() {
+    private func onRunSucceeded() {
         UserDefaults.standard.set(Date(), forKey: identifier)
         UserDefaults.standard.removeObject(forKey: retryIdentifier)
         UserDefaults.standard.synchronize()
     }
     
-    func onRunFailed() {
+    private func onRunFailed() {
         UserDefaults.standard.set(Date(), forKey: retryIdentifier)
         UserDefaults.standard.synchronize()
     }
